@@ -6,6 +6,11 @@ import { createQuestion, createAnswer, getQAData, editQuestion } from '../servic
 import '../../App.css';
 
 
+//-- [See first the comments inside the code because this was a last test to make a Dynamic HTML.]
+//-- In this case, we tried to use the dangerouslySetInnerHTML property of the DIV to inject the HTML
+//-- which worked but the same way, the REACT functionality is not recognized, specifically
+//-- the onClick={(e) => this.openModal()} or any bootstrap classes in the DIV.
+
 // function DynamicHTML() {
 //   let data = '';
 
@@ -40,6 +45,7 @@ class Questions extends Component {
 
   constructor() {
     super()
+    //-- Using this to inject the Dynamic HTML to the DIV
     this.divRef = React.createRef();
     
     this.state = {
@@ -58,6 +64,11 @@ class Questions extends Component {
  }
 
 
+  //-- This function gets all the Questions and Answers from the database (see getQAData in the services.js)
+  //-- and we are generating the HTML to show each Quesitons and its answers below. 
+  //-- Here is where I have the main problem because injecting this code to the page, it doesnt recognize the 
+  //-- REACT statements like this in the button onClick: {(e) => this.openModal()}
+  //-- or any Bootstrap clases we assign to the DIVs.
   getAllAnswers = () => {
     var data = '';
     getQAData().then(res => {
@@ -88,7 +99,7 @@ class Questions extends Component {
                                       'Question posted by User: <span style="color:red">' + q_user + '</span> <a href="#">Add your Answer...</a> ' + 
                               ' </div> ' +
                               ' <div style="margin-left:30px;">  ' +
-                                  question +  '<button type="button" onClick="openModal()" className="btn btn-danger ">Open Modal</button>' +
+                                  question +  '<button type="button" onClick="{(e) => this.openModal()}" className="btn btn-danger ">Open Modal</button>' +
                               ' </div> ' +
                           ' </div>';
                   currQid = q_id;
@@ -104,9 +115,6 @@ class Questions extends Component {
                               ' </div> ' +
                           ' </div>'
                 }
-
-                
-
                 console.log(data);
                 this.divRef.current.innerHTML = data;
 
@@ -124,7 +132,72 @@ class Questions extends Component {
   
   }
 
+  //-- This is the same function as above but I made it first using the Bootstrap clases. The page doesn't recognize them.
+  //-- that's why I used pure HTML to make the borders and style to work.
+  /*
+  getAllAnswers = () => {
+    var data = '';
+    getQAData().then(res => {
+        console.log(res);
+        if (res === 'No events found') {
+          console.log('error... ' )
+        } else {
+            let currQid = -1;
+            let question, answer, q_user, a_user, q_id;
+            //let data = '';
+
+            for (var i = 0; i < res.length; ++i) {
+                q_id = res[i].q_id;
+                question = res[i].question_text;
+                answer = res[i].answer_text;
+                q_user = res[i].q_username;
+                a_user = res[i].a_username;
+                
+                
+                if (currQid !== q_id) {
+                  if (currQid !== -1)
+                    data += "</div>";
+
+                  data += ' <div className="row m-3 p-4  border border-info"> ' 
+
+                  data += ' <div className="row m-3 p-2"> ' + 
+                              ' <div className="row">  ' + 
+                                      'Question posted by User: <span style="color:red">' + q_user + '</span> <a href="#">Add your Answer...</a> ' + 
+                              ' </div> ' +
+                              ' <div className="row ml-5">  ' +
+                                  question +  '<button type="button" onClick="{(e) => this.openModal()}" className="btn btn-danger ">Open Modal</button>' +
+                              ' </div> ' +
+                          ' </div>';
+                  currQid = q_id;
+                }
+                
+                if (answer) {
+                  data += ' <div className="row mb-3 p-4  border border-light"> ' + 
+                              ' <div className="row " >  ' + 
+                                      'User: ' + a_user + ' ' +
+                              ' </div> ' +
+                              ' <div className="row m-2" > ' +
+                                      answer + ' ' +
+                              ' </div> ' +
+                          ' </div>'
+                }
+                console.log(data);
+                this.divRef.current.innerHTML = data;
+
+                let dataHtml = this.state.dataHtml
+                dataHtml = data;
+                this.setState({dataHtml});
+
+                let loaded = this.state.loaded
+                loaded = 1;
+                this.setState({loaded});
+                
+            }
+          }
+      })
   
+  }
+  */
 
   createQuestion= (e) => {
     createQuestion(this.state.question)
@@ -211,7 +284,10 @@ class Questions extends Component {
       <>
     
         <MDBContainer>
+        {/* Added this statement below because we need to get All Q/A the first time but I expected to be a better way to have 
+            like an onLoad option in REACT to update those variables. Haven't found it. It works as expected though. */}
         {this.state.loaded === 0 ? this.getAllAnswers() : null} 
+
         <div className="container mt-3">
             <div className="row">
                 <div className="col-md-20 mrgnbtm">
@@ -240,7 +316,7 @@ class Questions extends Component {
                     <div className="row mt-5 ">
                         <h3>Responses</h3>
 
-                        
+                        {/* here is where the dynamic HTML should go. The table with all Questions and their Answers */}
                         <div className="row" ref={this.divRef}></div>
 
                         {/* <DynamicHTML/> */}
